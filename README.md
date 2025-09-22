@@ -3,6 +3,7 @@ The NHANES dataset contains rich health, lifestyle, lab, and biomarker informati
 Nahnes Dataste: https://wwwn.cdc.gov/nchs/nhanes/default.aspx
 
 ## Project Structure
+```
 nhanes-cvd/
 ├─ data/                  # All datasets
 │  ├─ raw/                # Untouched SAS/XPT files directly from NHANES
@@ -37,3 +38,4 @@ nhanes-cvd/
 ├─ dvc.yaml               # (Optional) Data & model versioning with DVC
 ├─ Snakefile              # Or Makefile for pipeline orchestration
 └─ README.md              # Project documentation (this file)
+```
