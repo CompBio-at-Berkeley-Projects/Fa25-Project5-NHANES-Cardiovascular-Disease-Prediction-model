@@ -2,7 +2,7 @@
 The NHANES dataset contains rich health, lifestyle, lab, and biomarker information from a large, diverse U.S. population. This project aims to build a reproducible pipeline that leverages NHANES data to develop and benchmark machine learning models for CVD risk prediction, with an interactive dashboard for exploring key risk factors.
 Nahnes Dataste: https://wwwn.cdc.gov/nchs/nhanes/default.aspx
 
-## Project Structure
+## Project Structure(Suggested)
 ```
 nhanes-cvd/
 ├─ data/                  # All datasets
