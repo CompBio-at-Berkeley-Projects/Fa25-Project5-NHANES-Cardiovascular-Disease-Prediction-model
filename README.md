@@ -1,11 +1,11 @@
 # Fa25-Porject5-NHANES-Cardiovascular-Disease-Prediction-model
 The NHANES dataset contains rich health, lifestyle, lab, and biomarker information from a large, diverse U.S. population. This project aims to build a reproducible pipeline that leverages NHANES data to develop and benchmark machine learning models for CVD risk prediction, with an interactive dashboard for exploring key risk factors.
 ## Data and tools
-Nahnes Dataset: https://wwwn.cdc.gov/nchs/nhanes/default.aspx
-Demographics (DEMO), Exam (e.g., BPX), Labs (e.g., TRIGLY, GLU, CHOL), Questionnaire (e.g., smoking, medical conditions).
-Linked Mortality (NDI linkage): contains follow-up time, vital status, and CVD death indicators (ICD-10 I00–I99).
-Use MEC examination weights (WTMEC2YR) for participants with labs/exam; when combining multiple 2-year cycles, use combined weights: WTMEC = WTMEC2YR / (# of cycles you pooled).
-Videos for neural networks basics(recommend to watch all): https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi
+- Nahnes Dataset: https://wwwn.cdc.gov/nchs/nhanes/default.aspx
+- Demographics (DEMO), Exam (e.g., BPX), Labs (e.g., TRIGLY, GLU, CHOL), Questionnaire (e.g., smoking, medical conditions).
+- Linked Mortality (NDI linkage): contains follow-up time, vital status, and CVD death indicators (ICD-10 I00–I99).
+- Use MEC examination weights (WTMEC2YR) for participants with labs/exam; when combining multiple 2-year cycles, use combined weights: WTMEC = WTMEC2YR / (# of cycles you pooled).
+- Videos for neural networks basics(recommend to watch all): https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi
 ## Project Structure(Suggested)
 ```
 nhanes-cvd/
