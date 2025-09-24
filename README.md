@@ -16,7 +16,9 @@ The NHANES dataset contains rich health, lifestyle, lab, and biomarker informati
     WTMEC = WTMEC2YR / (# of cycles pooled)
     ```
 - **Learning Resources**:  
-  - [Neural Networks Basics (video playlist)](https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi) (recommended to watch all)  
+  - [Neural Networks Basics (video playlist)](https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi) (recommended to watch all)
+  - Github basics:https://sp25.datastructur.es/labs/lab04/ and google
+  - Feel Free to use LLMs to help you code as long as you are learning
 ## Project Structure(Suggested)
 ```
 nhanes-cvd/
