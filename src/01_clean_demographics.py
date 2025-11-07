@@ -1,5 +1,64 @@
 import pandas as pd
 from pathlib import Path
+import re
+
+RAW = Path("data/raw")
+INTERIM = Path("data/interim")
+INTERIM.mkdir(parents=True, exist_ok=True)
+
+def find_cycles():
+    pairs = []
+    for p in sorted(RAW.glob("demo_*_*.xpt")):
+        m = re.search(r"demo_(\d{4}_\d{4})", p.name)
+        if m:
+            pairs.append((m.group(1).replace("_", "-"), p))
+    if not pairs:
+        raise FileNotFoundError("⚠️ No demo_[YYYY_YYYY].xpt files found in data/raw/")
+    print(f"🔍 Found {len(pairs)} demo files:")
+    for c, p in pairs:
+        print(f"   {c}: {p.name}")
+    return pairs
+
+def load_demo(path: Path) -> pd.DataFrame:
+    return pd.read_sas(path, format="xport")
+
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    race_col = "RIDRETH3" if "RIDRETH3" in df.columns else ("RIDRETH1" if "RIDRETH1" in df.columns else None)
+    keep = ["SEQN", "RIDAGEYR", "RIAGENDR", race_col, "WTMEC2YR", "SDMVPSU", "SDMVSTRA"]
+    keep = [c for c in keep if c]
+    return df[keep].rename(columns={
+        "RIDAGEYR": "Age",
+        "RIAGENDR": "Sex",
+        "RIDRETH1": "Race/Ethnicity",
+        "RIDRETH3": "Race/Ethnicity",
+        "WTMEC2YR": "MEC exam weight",
+        "SDMVPSU": "Pseudo PSU",
+        "SDMVSTRA": "Pseudo stratum",
+    })
+
+def main():
+    frames = []
+    for cycle, path in find_cycles():
+        try:
+            df = load_demo(path)
+            df = normalize_columns(df)
+            df["Cycle"] = cycle
+            frames.append(df)
+            print(f"✅ Loaded {cycle} ({df.shape[0]} rows)")
+        except Exception as e:
+            print(f"⚠️ Skipping {cycle}: {e}")
+
+    demo_all = pd.concat(frames, ignore_index=True)
+    out = INTERIM / "demo_subset.csv"
+    demo_all.to_csv(out, index=False)
+    print(f"\n✅ Combined demographics saved → {out}")
+    print(f"   Total shape: {demo_all.shape}")
+    print("   Cycles included:", sorted(demo_all['Cycle'].unique()))
+
+if __name__ == "__main__":
+    main()
+import pandas as pd
+from pathlib import Path
 
 # ---- Load available cycles (guide shows 2015–2016 + 2017–2018) ----
 dfs = []
