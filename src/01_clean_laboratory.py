@@ -125,7 +125,6 @@ for name, obj in list(globals().items()):
         years = f"{start}-{start+1}"
         # add columns in place
         obj["Cycle"] = years
-        obj["Laboratory"] = "Laboratory"
         by_domain[prefix].append(obj)
 
 # concat each domain
@@ -143,33 +142,44 @@ CholesterolLDL_all = domain_all.get("CholesterolLDL")
 CholesterolHDL_all = domain_all.get("CholesterolHDL")
 AlbuminCreatinineUrine_all = domain_all.get("AlbuminCreatinineUrine")
 
-def collapse_by_respondent(df):
-    data_cols = [c for c in df.columns if c not in ["SEQN", "Cycle", "Laboratory"]]
+def _latest_cycle(series: pd.Series):
+    s = series.dropna().astype(str)
+    if s.empty:
+        return np.nan
+    # expects strings like "YYYY-YYYY"
+    start = s.str.extract(r'(\d{4})')[0].astype(int).max()
+    return f"{start}-{start+1}"
+
+def collapse_by_respondent_keep_cycle(df, idcol="SEQN"):
+    meta = ("Cycle",)
+    data_cols = [c for c in df.columns if c not in (idcol,) + meta]
     out = df.copy()
     out[data_cols] = out[data_cols].replace(0, np.nan)
-    agg = {c: "max" for c in data_cols}
-    collapsed = out.groupby("SEQN", as_index=False).agg(agg)
-    return collapsed
 
-def drop_all_nan_rows(df, ignore_cols=("SEQN","Cycle","Laboratory")):
+    agg = {c: "max" for c in data_cols}
+    if "Cycle" in out.columns:
+        agg["Cycle"] = _latest_cycle
+
+    return out.groupby(idcol, as_index=False).agg(agg)
+
+def drop_all_nan_rows(df, ignore_cols=("SEQN","Cycle")):
     subset = [c for c in df.columns if c not in ignore_cols]
     return df.dropna(subset=subset, how="all").copy()
 
 
-StandardBiochemistryProfile_all1 = drop_all_nan_rows(collapse_by_respondent(StandardBiochemistryProfile_all))
-PlasmaFastingGlucose_all1 = drop_all_nan_rows(collapse_by_respondent(PlasmaFastingGlucose_all))
-CReactiveProtein_all1 = drop_all_nan_rows(collapse_by_respondent(CReactiveProtein_all))
-CotinineandHydroxycotinineSerum_all1 = drop_all_nan_rows(collapse_by_respondent(CotinineandHydroxycotinineSerum_all))
-CompleteBloodCountwith5PartDifferential_all1 = drop_all_nan_rows(collapse_by_respondent(CompleteBloodCountwith5PartDifferential_all))
-CholesterolTotal_all1 = drop_all_nan_rows(collapse_by_respondent(CholesterolTotal_all))
-CholesterolLDL_all1 = drop_all_nan_rows(collapse_by_respondent(CholesterolLDL_all))
-CholesterolHDL_all1 = drop_all_nan_rows(collapse_by_respondent(CholesterolHDL_all))
-AlbuminCreatinineUrine_all1 = drop_all_nan_rows(collapse_by_respondent(AlbuminCreatinineUrine_all))
+StandardBiochemistryProfile_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(StandardBiochemistryProfile_all))
+PlasmaFastingGlucose_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(PlasmaFastingGlucose_all))
+CReactiveProtein_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CReactiveProtein_all))
+CotinineandHydroxycotinineSerum_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CotinineandHydroxycotinineSerum_all))
+CompleteBloodCountwith5PartDifferential_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CompleteBloodCountwith5PartDifferential_all))
+CholesterolTotal_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CholesterolTotal_all))
+CholesterolLDL_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CholesterolLDL_all))
+CholesterolHDL_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(CholesterolHDL_all))
+AlbuminCreatinineUrine_all1 = drop_all_nan_rows(collapse_by_respondent_keep_cycle(AlbuminCreatinineUrine_all))
 
 keep_vars = [
     "SEQN",  # Respondent ID
     "Cycle",
-    "Laboratory",
     "URDACT", # Albumin creatinine ratio (mg/g),
     "LBDHDD", # HDL 1
     "LBDHDL", # HDL 2
@@ -190,9 +200,8 @@ keep_vars = [
 
 laboratory_all = pd.concat([StandardBiochemistryProfile_all, PlasmaFastingGlucose_all,CReactiveProtein_all,CotinineandHydroxycotinineSerum_all,CompleteBloodCountwith5PartDifferential_all,CholesterolTotal_all,CholesterolLDL_all,CholesterolHDL_all,AlbuminCreatinineUrine_all], axis=0, ignore_index = True)
 laboratory_subset = laboratory_all[keep_vars]
-laboratory_subset = collapse_by_respondent(laboratory_subset)
+laboratory_subset = collapse_by_respondent_keep_cycle(laboratory_subset)
 laboratory_subset = laboratory_subset.rename(columns = {
-    "SEQN":  "Respondent ID",
     "URDACT": "Albumin creatinine ratio (mg/g)",
     "LBDHDD": "Direct HDL-Cholesterol (mg/dL)",
     "LBDHDL": "HDL-cholesterol (mg/dL)",
@@ -210,6 +219,6 @@ laboratory_subset = laboratory_subset.rename(columns = {
     "LBXSAL": "Albumin, refrigerated serum (g/dL)"
 })
 
-laboratory_subset.to_csv("data/interim/laboratory_subset4.csv", index=False)
+laboratory_subset.to_csv("data/interim/laboratory_subset5.csv", index=False)
 
 print("Demographics data subset saved successfully!")
