@@ -57,7 +57,7 @@ diet_subset = diet_subset.rename(columns={
 
 
 # --- 7. SAVE FINAL MERGED FILE ---
-output_path = "..data/interim/dietary_subset.csv"
+output_path = "../data/interim/dietary_subset.csv"
 diet_subset.to_csv(output_path, index=False)
 
 print(f"Success! Merged data saved to {output_path}")
