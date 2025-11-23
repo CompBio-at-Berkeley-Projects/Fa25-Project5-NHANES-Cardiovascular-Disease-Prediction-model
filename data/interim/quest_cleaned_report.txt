@@ -1,0 +1,18 @@
+Input:  data/interim/questionnaire_subset.csv
+Output: data/interim/quest_cleaned_subset.csv
+Rows before: 96811
+Rows after:  96811
+
+Missing values per column (top 20):
+SmokeNow                  71675
+FamHistory_HeartAttack    57063
+Sedentary_Mins            55517
+HighChol                  50070
+WeakKidneys               46613
+Smoked100                 40835
+Height_in                 33636
+Weight_lb                 33543
+HighBP                    33488
+Diabetes                      9
+SEQN                          0
+Cycle                         0
