@@ -1,3 +1,4 @@
 
 # build artifacts
 /data/interim/*.csv
+/data/raw/*
