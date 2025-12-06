@@ -23,13 +23,15 @@ def load_demo(path: Path) -> pd.DataFrame:
     return pd.read_sas(path, format="xport")
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    race_col = "RIDRETH3" if "RIDRETH3" in df.columns else ("RIDRETH1" if "RIDRETH1" in df.columns else None)
+    # Prefer RIDRETH3, then RIDRETH2, then RIDRETH1 if present
+    race_col = next((c for c in ("RIDRETH3", "RIDRETH2", "RIDRETH1") if c in df.columns), None)
     keep = ["SEQN", "RIDAGEYR", "RIAGENDR", race_col, "WTMEC2YR", "SDMVPSU", "SDMVSTRA"]
     keep = [c for c in keep if c]
     return df[keep].rename(columns={
         "RIDAGEYR": "Age",
         "RIAGENDR": "Sex",
         "RIDRETH1": "Race/Ethnicity",
+        "RIDRETH2": "Race/Ethnicity",
         "RIDRETH3": "Race/Ethnicity",
         "WTMEC2YR": "MEC exam weight",
         "SDMVPSU": "Pseudo PSU",
@@ -90,8 +92,8 @@ if p_2015_csv.exists() or p_2015_xpt.exists():
 demo_all = pd.concat(dfs, axis=0, ignore_index=True)
 
 # ---- Keep variables the guide lists (with 2017+ column variants) ----
-# RIDRETH is 1 in older docs, 3 in 2017–2018; keep whichever exists.
-race_col = "RIDRETH3" if "RIDRETH3" in demo_all.columns else "RIDRETH1"
+# RIDRETH is 1 in older docs, 3 in 2017–2018; prefer 3, then 2, then 1.
+race_col = next((c for c in ("RIDRETH3", "RIDRETH2", "RIDRETH1") if c in demo_all.columns), None)
 
 keep_vars = [
     "SEQN",        # Respondent ID
@@ -109,6 +111,7 @@ demo_subset = demo_all[[c for c in keep_vars if c in demo_all.columns]].rename(
         "RIDAGEYR": "Age",
         "RIAGENDR": "Sex",
         "RIDRETH1": "Race/Ethnicity",
+        "RIDRETH2": "Race/Ethnicity",
         "RIDRETH3": "Race/Ethnicity",
         "WTMEC2YR": "MEC exam weight",
         "SDMVPSU": "Pseudo PSU",

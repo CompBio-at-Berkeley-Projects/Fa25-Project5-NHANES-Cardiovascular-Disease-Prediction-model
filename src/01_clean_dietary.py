@@ -30,34 +30,76 @@ diet_all = pd.concat(diet_dfs, axis=0, ignore_index=True)
 # Note: Variable names like DR1TSUGR might be missing in very old years (1999). 
 # We use .reindex to safely include them (filling missing years with NaN).
 
-target_vars = [
-    'SEQN', 'Cycle',
-    'DR1TSODI',  # Sodium
-    'DR1TSFAT',  # Saturated Fat
-    'DR1TPOTA',  # Potassium
-    'DR1TFIBE',  # Dietary Fiber
-    'DR1TSUGR',  # Total Sugars
-    'DR1TCHOL',  # Cholesterol
-    'DR1TKCAL'   # Energy (Calories)
-]
+VAR_MAP = {
+    "DR_Sodium_raw":    ['DR1TSODI', 'DRDTSODI'],
+    "DR_Potassium_raw": ['DR1TPOTA', 'DRXTPOTA'],
+    "DR_SatFat_raw":    ['DR1TSFAT', 'DRXTSFAT'],
+    "DR_Fiber_raw":     ['DR1TFIBE', 'DRXTFIBE'],
+    "DR_Sugar_raw":     ['DR1TSUGR', 'DR1TSUGR'], # No conflict found for Sugar, using new name
+    "DR_Cholesterol_raw": ['DR1TCHOL', 'DRXTCHOL'],
+    "DR_Calories_raw":  ['DR1TKCAL', 'DRXTKCAL']
+}
+
+# Create a list of all raw variables to keep (for subsetting)
+all_raw_vars = ['SEQN', 'Cycle'] + [name for pair in VAR_MAP.values() for name in pair]
+all_raw_vars = list(set(all_raw_vars)) # Ensure unique list
 
 # Filter the big dataframe to just these columns
-diet_subset = diet_all.reindex(columns=target_vars)
+diet_subset = diet_all.reindex(columns=all_raw_vars)
 
-# Rename to human-readable names
-diet_subset = diet_subset.rename(columns={
-    "DR1TSODI": "Sodium_mg",
-    "DR1TSFAT": "SaturatedFat_gm",
-    "DR1TPOTA": "Potassium_mg",
-    "DR1TFIBE": "Fiber_gm",
-    "DR1TSUGR": "Sugar_gm",
-    "DR1TCHOL": "Cholesterol_mg",
-    "DR1TKCAL": "Calories_kcal"
-})
+# Merge the old and new columns into a single, standardized column name
+for std_col, raw_cols in VAR_MAP.items():
+    new_col, old_col = raw_cols
+    
+    # 1. Check if both columns exist in the subset (e.g., 'DR1TSODI' and 'DRDTSODI')
+    if new_col in diet_subset.columns and old_col in diet_subset.columns:
+        # 2. Use fillna() to combine them. Where 'New' is NaN, fill it with 'Old'.
+        diet_subset[std_col] = diet_subset[new_col].fillna(diet_subset[old_col])
+        # 3. Drop the redundant raw columns
+        diet_subset = diet_subset.drop(columns=[new_col, old_col])
+    
+    # If only one version exists (e.g., if DR1TSUGR is the only name used across all), rename it.
+    elif new_col in diet_subset.columns:
+         diet_subset[std_col] = diet_subset[new_col]
+         diet_subset = diet_subset.drop(columns=[new_col])
+    
+    elif old_col in diet_subset.columns:
+         diet_subset[std_col] = diet_subset[old_col]
+         diet_subset = diet_subset.drop(columns=[old_col])
 
+
+# --- 5. RENAME TO FINAL HUMAN-READABLE NAMES AND ROUNDING ---
+
+# Final map from standardized raw name to clean name
+FINAL_NAME_MAP = {
+    "DR_Sodium_raw": "Sodium_mg",
+    "DR_Potassium_raw": "Potassium_mg",
+    "DR_SatFat_raw": "SaturatedFat_gm",
+    "DR_Fiber_raw": "Fiber_gm",
+    "DR_Sugar_raw": "Sugar_gm",
+    "DR_Cholesterol_raw": "Cholesterol_mg",
+    "DR_Calories_raw": "Calories_kcal"
+}
+
+diet_subset = diet_subset.rename(columns=FINAL_NAME_MAP)
+
+#rounding
+rounding_map = {
+    "Sodium_mg": 0,
+    "SaturatedFat_gm": 1,
+    "Potassium_mg": 0,
+    "Fiber_gm": 1,
+    "Sugar_gm": 1,
+    "Cholesterol_mg": 1, 
+    "Calories_kcal": 0
+}
+
+for col, decimals in rounding_map.items():
+    if col in diet_subset.columns:
+        diet_subset[col] = diet_subset[col].round(decimals)
 
 # --- 7. SAVE FINAL MERGED FILE ---
-output_path = "../data/interim/dietary_subset.csv"
+output_path = "../data/interim/dietary_subset_final.csv"
 diet_subset.to_csv(output_path, index=False)
 
 print(f"Success! Merged data saved to {output_path}")
